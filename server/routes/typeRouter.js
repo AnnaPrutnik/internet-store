@@ -1,6 +1,6 @@
 const Router = require('express');
 const typeController = require('../controllers/typeController');
-const checkId = require('../middlewares/checkId');
+const checkId = require('../middlewares/checkId-middleware');
 
 const router = new Router();
 

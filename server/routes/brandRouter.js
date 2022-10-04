@@ -1,6 +1,6 @@
 const Router = require('express');
 const brandController = require('../controllers/brandController');
-const checkId = require('../middlewares/checkId');
+const checkId = require('../middlewares/checkId-middleware');
 
 const router = new Router();
 

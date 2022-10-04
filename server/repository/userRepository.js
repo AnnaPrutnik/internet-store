@@ -1,27 +1,46 @@
-const { User, Basket } = require('../models/models');
+const { User } = require('../models/models');
 
 class UserRepository {
   async getByEmail(email) {
-    const user = await User.findOne({ where: { email } });
+    const user = await User.findOne({
+      where: { email },
+    });
     return user;
   }
 
-  async create({ email, password, role }) {
-    console.log('password', password);
-    const user = await User.create({ email, password, role });
+  async getByActivateLink(link) {
+    const user = await User.findOne({
+      where: {
+        activationLink: link,
+      },
+    });
     return user;
   }
 
-  async login() {
-    return;
+  async getByPk(id) {
+    const user = await User.findByPk(id);
+    return user;
   }
 
-  async logout() {
-    return;
+  async getAll() {
+    const users = await User.findAll();
+    return users;
   }
 
-  async checkAuth() {
-    return;
+  async create({ email, password, role, activationLink }) {
+    const user = await User.create({ email, password, role, activationLink });
+    return user;
+  }
+
+  async updateUserActivate(id) {
+    await User.update(
+      { isActivated: true },
+      {
+        where: {
+          id,
+        },
+      }
+    );
   }
 }
 
