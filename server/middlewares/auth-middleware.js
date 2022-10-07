@@ -2,6 +2,9 @@ const ApiError = require('../errors/ApiError');
 const tokenService = require('../services/token-service');
 
 module.exports = function (req, res, next) {
+  if (req.method === 'OPTIONS') {
+    next();
+  }
   try {
     const authorizationHeader = req.headers.authorization;
     if (!authorizationHeader) {
@@ -18,6 +21,6 @@ module.exports = function (req, res, next) {
     req.user = validateToken;
     next();
   } catch (error) {
-    return next(ApiError.UnauthorizedError());
+    return next(ApiError.badRequest('some problem'));
   }
 };

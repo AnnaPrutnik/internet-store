@@ -1,44 +1,57 @@
+const { validationResult } = require('express-validator');
 const brandRepository = require('../repository/brandRepository');
 const messages = require('../config/messages');
+const ApiError = require('../errors/ApiError');
 
 class BrandController {
   async getAll(req, res) {
-    const brands = await brandRepository.getAll();
-    res
-      .status(200)
-      .json({ status: 200, message: messages.successResponse, data: brands });
+    try {
+      const brands = await brandRepository.getAll();
+      res.status(200).send(brands);
+    } catch (error) {
+      return next(ApiError.badRequest(errors.message));
+    }
   }
 
-  async getSingle(req, res) {
-    const { id } = req.params;
-    const brand = await brandRepository.getSingle(id);
-    if (brand) {
-      return res
-        .status(200)
-        .json({ status: 200, message: messages.successResponse, data: brand });
+  async getSingle(req, res, next) {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return next(ApiError.badRequest(errors.message));
     }
-    res
-      .status(200)
-      .json({ status: 200, messages: messages.successResponse, data: null });
+    try {
+      const { id } = req.params;
+      const brand = await brandRepository.getSingle(id);
+      res.status(200).send(brand);
+    } catch (error) {
+      return next(ApiError.badRequest(errors.message));
+    }
   }
 
   async create(req, res) {
-    const { name } = req.body;
-    const brand = await brandRepository.create(name);
-    res
-      .status(200)
-      .json({ status: 201, message: messages.successResponse, data: brand });
+    try {
+      const { name } = req.body;
+      const brand = await brandRepository.create(name);
+      res.status(201).send(brand);
+    } catch (error) {
+      return next(ApiError.badRequest(errors.message));
+    }
   }
 
-  async delete(req, res) {
-    const { id } = req.params;
-    const result = await brandRepository.delete(id);
-    if (result === 1) {
-      return res
-        .status(200)
-        .json({ status: 200, message: messages.successResponse });
+  async delete(req, res, next) {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return next(ApiError.badRequest(errors.array()));
     }
-    res.status(404).json({ status: 404, message: messages.noItem });
+    try {
+      const { id } = req.params;
+      const result = await brandRepository.delete(id);
+      if (result === 1) {
+        return res.status(200);
+      }
+      res.status(404).json({ message: messages.noItem });
+    } catch (error) {
+      return next(ApiError.badRequest(errors.message));
+    }
   }
 }
 

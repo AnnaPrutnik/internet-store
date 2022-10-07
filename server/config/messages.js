@@ -10,6 +10,7 @@ const messages = {
   unexpectedError: 'Unexpected Error',
   invalidCredential: 'An invalid credential',
   notUserWithLink: 'Not a user with the current link.',
+  accessDenied: 'Access denied',
   userExist(email) {
     return `User with email ${email} is already exist`;
   },

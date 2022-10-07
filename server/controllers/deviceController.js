@@ -1,8 +1,9 @@
 const path = require('path');
+const { validationResult } = require('express-validator');
+const { v4: uuidv4 } = require('uuid');
 const deviceRepository = require('../repository/deviceRepository');
 const ApiError = require('../errors/ApiError');
 const messages = require('../config/messages');
-const { v4: uuidv4 } = require('uuid');
 
 class DeviceController {
   async getAll(req, res) {
@@ -10,36 +11,43 @@ class DeviceController {
     page = page || 1;
     limit = page || 9;
     let offset = page * limit - limit;
-
     let devices;
-    if (!brandId && !typeId) {
-      devices = await deviceRepository.getAll(limit, offset);
+    try {
+      if (!brandId && !typeId) {
+        devices = await deviceRepository.getAll(limit, offset);
+      }
+      if (brandId && !typeId) {
+        devices = await deviceRepository.getAllByBrand(limit, offset, brandId);
+      }
+      if (!brandId && typeId) {
+        devices = await deviceRepository.getAllByType(limit, offset, typeId);
+      }
+      if (brandId && typeId) {
+        devices = await deviceRepository.getAllByTypeAndBrand(
+          limit,
+          offset,
+          brandId,
+          typeId
+        );
+      }
+      res.status(200).send(devices);
+    } catch (error) {
+      return next(ApiError.badRequest(errors.message));
     }
-    if (brandId && !typeId) {
-      devices = await deviceRepository.getAllByBrand(limit, offset, brandId);
-    }
-    if (!brandId && typeId) {
-      devices = await deviceRepository.getAllByType(limit, offset, typeId);
-    }
-    if (brandId && typeId) {
-      devices = await deviceRepository.getAllByTypeAndBrand(
-        limit,
-        offset,
-        brandId,
-        typeId
-      );
-    }
-    res
-      .status(200)
-      .json({ status: 200, message: messages.successResponse, data: devices });
   }
 
   async getSingle(req, res) {
-    const { id } = req.params;
-    const device = await deviceRepository.getSingle(id);
-    res
-      .status(200)
-      .json({ status: 200, message: messages.successResponse, data: device });
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return next(ApiError.badRequest(errors.array()));
+    }
+    try {
+      const { id } = req.params;
+      const device = await deviceRepository.getSingle(id);
+      res.status(200).send(device);
+    } catch (error) {
+      return next(ApiError.badRequest(errors.message));
+    }
   }
 
   async create(req, res, next) {
@@ -64,25 +72,27 @@ class DeviceController {
           deviceRepository.createDeviceInfo(title, description, device.id)
         );
       }
-      res
-        .status(200)
-        .json({ status: 201, message: messages.successResponse, data: device });
+      res.status(200).send(device);
     } catch (error) {
       return next(ApiError.badRequest(error.message));
     }
   }
 
   async delete(req, res, next) {
-    const { id } = req.params;
-    const result = await deviceRepository.delete(id);
-    if (result === 1) {
-      return res
-        .status(200)
-        .json({ status: 200, message: messages.successResponse });
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return next(ApiError.badRequest(errors.array()));
     }
-    return res
-      .status(400)
-      .json({ status: 400, message: messages.noItem });
+    try {
+      const { id } = req.params;
+      const result = await deviceRepository.delete(id);
+      if (result === 1) {
+        return res.status(200);
+      }
+      return res.status(400).json({ message: messages.noItem });
+    } catch (error) {
+      return next(ApiError.badRequest(error.message));
+    }
   }
 }
 

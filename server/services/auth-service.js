@@ -16,7 +16,7 @@ class AuthService {
     return { ...tokens, user: newUserDto };
   }
 
-  async registration(email, password) {
+  async registration(email, password, role) {
     const user = await userRepository.getByEmail(email);
     if (user) {
       throw new Error(messages.userExist(email));
@@ -28,11 +28,12 @@ class AuthService {
       email,
       password: hashPassword,
       activationLink,
+      role,
     });
 
     await mailService.sendActivationMail(
       email,
-      `${process.env.API_URL}/api/user/activate/${activationLink}`
+      `${process.env.API_URL}/api/auth/activate/${activationLink}`
     );
     const result = await this.#generateToken(newUser);
     return result;

@@ -6,9 +6,6 @@ function checkId(req, res, next) {
   if (!id) {
     return next(ApiError.badRequest(messages.shouldIncludeId));
   }
-  if (isNaN(Number(id))) {
-    return next(ApiError.badRequest(messages.wrongTypeOfId));
-  }
   next();
 }
 
